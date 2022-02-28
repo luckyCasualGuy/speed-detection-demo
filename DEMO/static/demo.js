@@ -33,10 +33,11 @@ function set_data(key, data) {
     image.setAttribute('src', '/static/results/' + String(key) + '.jpg')
 }
 
-
-function create_table_row(value, plate, speed) {
+var not_current = null
+function create_table_row(value, id, plate, speed) {
     var tr = document.createElement('tr')
     tr.setAttribute('val', value)
+    tr.setAttribute('select', id)
     var th = document.createElement('th')
     th.innerText = current
     var td1 = document.createElement('td')
@@ -57,7 +58,9 @@ function create_table_row(value, plate, speed) {
 
     tr.addEventListener('click', ev => {
         var data = results[value]
-        set_data(value, data)
+        not_current = data
+
+        set_data(id, data)
 
         document.getElementById('main').style.display = 'none'
         document.getElementById('result').style.display = 'block'
@@ -67,12 +70,11 @@ function create_table_row(value, plate, speed) {
 
 var video_flag = true
 function videoend(ev) {
-    console.log('-->', video_flag)
     if (video_flag) {
 
         send_data(window.location, {'selected': selector.value}, res => {
             results[current] = res
-            var tr = create_table_row(selector.value, res['name plate'], res['speed'])
+            var tr = create_table_row(current, selector.value, res['name plate'], res['speed'])
             tbody.appendChild(tr)
             video.setAttribute('src', "/static/results/" + String(selector.value) + '_.webm')
             video.setAttribute('controls', true)
@@ -118,4 +120,7 @@ document.getElementById('report').addEventListener('click', ev => {
 
 document.getElementById('report-modal-btn').addEventListener('click', ev => {
     $("#report-modal").modal('hide');
+    not_current['comment'] = document.getElementById('comment').value
+    send_data(window.location,{'type': 'report', 'data': not_current },res=>{})
+
 })
